@@ -1,3 +1,31 @@
+<script setup>
+const question = ref('')
+const csvPath = ref(undefined)
+const saveDirectory = ref(undefined)
+
+const selectCsvFile = async () => {
+  const filePath = await window.mainAPI.selectCsvFile()
+  if (filePath) {
+    csvPath.value = filePath
+  }
+}
+
+const selectSaveDirectory = async () => {
+  const directory = await window.mainAPI.openFolderDialog()
+  if (directory) {
+    saveDirectory.value = directory
+  }
+}
+
+const createBadge = async () => {
+  const filePath = await window.mainAPI.createBadge(
+    question.value, csvPath.value, saveDirectory.value
+  )
+  console.log(filePath)
+  window.mainAPI.showFolder(filePath)
+}
+</script>
+
 <template>
   <div class="main-container">
     <div class="header">
@@ -74,34 +102,6 @@
     <p>お疲れ様でした。これで名札が作成されました。</p>
   </div>
 </template>
-
-<script setup>
-const question = ref('')
-const csvPath = ref(undefined)
-const saveDirectory = ref(undefined)
-
-const selectCsvFile = async () => {
-  const filePath = await window.mainAPI.selectCsvFile()
-  if (filePath) {
-    csvPath.value = filePath
-  }
-}
-
-const selectSaveDirectory = async () => {
-  const directory = await window.mainAPI.openFolderDialog()
-  if (directory) {
-    saveDirectory.value = directory
-  }
-}
-
-const createBadge = async () => {
-  const filePath = await window.mainAPI.createBadge(
-    question.value, csvPath.value, saveDirectory.value
-  )
-  console.log(filePath)
-  window.mainAPI.showFolder(filePath)
-}
-</script>
 
 <style lang="css" scoped>
 .main-container {
