@@ -1,8 +1,18 @@
 import os
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4, landscape
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from src.domain.entities import PersonName
 from .models import Frame, Pointer
+
+BOLD_FONT = "NotoSansJP-Medium"
+LIGHT_FONT = "NotoSansJP-Light"
+BOLD_FONT_SIZE = 40
+LIGHT_FONT_SIZE = 20
+
+pdfmetrics.registerFont(TTFont(BOLD_FONT, f"assets/fonts/{BOLD_FONT}.ttf"))
+pdfmetrics.registerFont(TTFont(LIGHT_FONT, f"assets/fonts/{LIGHT_FONT}.ttf"))
 
 class HyBadgeFactory:
     def __init__(
@@ -13,7 +23,7 @@ class HyBadgeFactory:
         ) -> None:
         self._badge_names = [name.on_badge for name in person_names]
         self._plate_names = sorted([name.on_plate for name in person_names] * 2)
-        self._question = question
+        self._question = '| ' + question
         self._output_path = output_path
         self._page = Frame(*A4)
         self._canvas = \
@@ -49,11 +59,19 @@ class HyBadgeFactory:
 
                 self._canvas.rect(p.x, p.y, badge_frame.w(), badge_frame.h())
                 self._canvas.line(
-                    10.0 + p.x,                    10.0 + p.y,
-                    -10.0 + p.x + badge_frame.w(), 10.0 + p.y,
+                    30.0 + p.x,                    10.0 + p.y,
+                    -30.0 + p.x + badge_frame.w(), 10.0 + p.y,
                 )
-                self._canvas.drawString(10.0 + p.x, 50.0 + p.y, name)
-                self._canvas.drawString(10.0 + p.x, 30.0 + p.y, self._question)
+
+                self._canvas.setFont(BOLD_FONT, 50)
+                self._canvas.drawString(
+                    self._justify_center_x(name, badge_frame) + p.x,
+                    130.0 + p.y,
+                    name
+                )
+
+                self._canvas.setFont(LIGHT_FONT, 20)
+                self._canvas.drawString(10.0 + p.x, 75.0 + p.y, self._question)
 
             self._canvas.showPage()
 
@@ -69,10 +87,23 @@ class HyBadgeFactory:
                 ) for x in range(4) for y in range(8)
             ]
 
+            self._canvas.setFont(BOLD_FONT, 40)
+
             for p in frame_pointers:
                 name = self._plate_names.pop() if self._plate_names else ''
 
                 self._canvas.rect(p.x, p.y, tag_frame.w(), tag_frame.h())
-                self._canvas.drawString(10.0 + p.x, 50.0 + p.y, name)
+                self._canvas.drawString(
+                    self._justify_center_x(name, tag_frame) + p.x,
+                    self._justify_center_y(40, tag_frame) + p.y,
+                    name
+                )
 
             self._canvas.showPage()
+
+    def _justify_center_x(self, text: str, frame: Frame) -> float:
+        text_width = self._canvas.stringWidth(text)
+        return (frame.w() - text_width) / 2
+
+    def _justify_center_y(self, font_size: float, frame: Frame) -> float:
+        return (frame.h() - (font_size-8)) / 2  # font_size-8 -> 行の上の空白
