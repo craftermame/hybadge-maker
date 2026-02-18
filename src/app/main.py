@@ -4,7 +4,7 @@ from src.infra.person_name_repository import PersonNameCsvRepository
 from src.usecases.make_badge import MakeBadgeUseCase
 
 def main():
-    if len(sys.argv) < 4:
+    if len(sys.argv) < 5:
         raise ValueError('Arguments: <question> <repo-path> <output-path> <participant-email>...')
     question = sys.argv[1]
     repo_path = sys.argv[2]
