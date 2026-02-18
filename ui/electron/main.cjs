@@ -14,8 +14,11 @@ const createWindow = () => {
     }
   })
 
-  win.loadURL('http://localhost:3000')
-  // win.loadFile(path.join(app.getAppPath(), '.output', 'public', 'index.html'))
+  if (app.isPackaged) {
+    win.loadFile(path.join(app.getAppPath(), '.output', 'public', 'index.html'))
+  } else {
+    win.loadURL('http://localhost:3000')
+  }
 }
 
 app.whenReady().then(() => {
