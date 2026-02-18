@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from .entities import PersonName
+from src.domain.entities import PersonName
 
 class IHyBadgeMaker(ABC):
     @abstractmethod
@@ -16,5 +16,5 @@ class IPersonNameRepository(ABC):
         self.src = src
 
     @abstractmethod
-    def person_names(self) -> list[PersonName]:
+    def person_names(self, emails: list[str]) -> list[PersonName]:
         pass

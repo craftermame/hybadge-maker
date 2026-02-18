@@ -1,4 +1,3 @@
-from src.domain.entities import PersonName
 from src.domain.interfaces import IHyBadgeMaker, IPersonNameRepository
 
 class MakeBadgeUseCase:
@@ -10,9 +9,10 @@ class MakeBadgeUseCase:
             self,
             question: str,
             output_path: str,
+            participant_emails: list[str],
         ) -> str:
 
-        person_names = self.repo.person_names()
+        person_names = self.repo.person_names(participant_emails)
 
         badge_path = \
             self.badge_maker.make_badge(person_names, question, output_path)
