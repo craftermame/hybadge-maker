@@ -8,7 +8,7 @@
     </div>
     <div class="btn-container">
       <h2>Step1.</h2>
-      <p>参加者の名簿を選択してください。</p>
+      <p>参加者名簿をアップロード</p>
       <v-btn
         color="secondary"
         rounded="xl"
@@ -20,7 +20,7 @@
       <h2>Step1.</h2>
       <v-text-field
         v-model="question"
-        label="ひとことクエスチョンを入力"
+        label="ひとことクエスチョンを入力（例: 最近ハマっていることは？）"
         variant="underlined"
       ></v-text-field>
     </div>
@@ -38,7 +38,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr v-for="badgeName in badgeNames">
             <td>
               <v-checkbox-btn></v-checkbox-btn>
             </td>
