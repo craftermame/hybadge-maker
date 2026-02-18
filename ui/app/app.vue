@@ -1,28 +1,48 @@
-<script setup>
-const question = ref('')
-const csvPath = ref(undefined)
-const saveDirectory = ref(undefined)
+<script setup lang="ts">
+const { badgeNames, loadBadgeNamesFromCsv } = useBadgeNames();
+
+const csvPath = ref<string | undefined>(undefined);
+const savePath = ref<string | undefined>(undefined);
+const participantEmails = ref<string[]>([]);
+const question = ref('');
+const isCreatingBadge = ref(false);
+
+onMounted(async () => {
+  try {
+    savePath.value = await window.mainAPI.getDownloadPath();
+  } catch (error) {
+    console.error("Failed to load default download path:", error);
+  }
+});
+
+watch(csvPath, async (newPath) => {
+  if (newPath) {
+    await loadBadgeNamesFromCsv(newPath);
+  }
+}, { immediate: true });
 
 const selectCsvFile = async () => {
-  const filePath = await window.mainAPI.selectCsvFile()
+  const filePath = await window.mainAPI.selectCsvFile();
   if (filePath) {
-    csvPath.value = filePath
-  }
-}
-
-const selectSaveDirectory = async () => {
-  const directory = await window.mainAPI.openFolderDialog()
-  if (directory) {
-    saveDirectory.value = directory
+    csvPath.value = filePath;
   }
 }
 
 const createBadge = async () => {
-  const filePath = await window.mainAPI.createBadge(
-    question.value, csvPath.value, saveDirectory.value
-  )
-  console.log(filePath)
-  window.mainAPI.showFolder(filePath)
+  isCreatingBadge.value = true;
+  try {
+    const filePath = await window.mainAPI.createBadge(
+      question.value,
+      csvPath.value,
+      savePath.value,
+      [...participantEmails.value]
+    );
+    await window.mainAPI.showFolder(filePath);
+  } catch (error) {
+    console.error("Error at badge creation:", error);
+  } finally {
+    isCreatingBadge.value = false;
+  }
 }
 </script>
 
@@ -31,33 +51,33 @@ const createBadge = async () => {
     <div class="header">
       <h1>Hylable Badge Maker</h1>
     </div>
-    <div>
-      <p>Step1 と Step2 を行い「名札を保存」ボタンを押してください。</p>
-    </div>
     <div class="btn-container">
       <h2>Step1.</h2>
-      <p>参加者名簿をアップロード</p>
+      <p>参加者名簿を CSV でアップロードしてください。</p>
       <v-btn
-        color="secondary"
+        color="primary"
         rounded="xl"
-        prepend-icon="mdi-file"
+        prepend-icon="mdi-file-upload"
         @click="selectCsvFile()"
-      >csv ファイルを選択</v-btn>
-    </div>
-    <div>
-      <h2>Step1.</h2>
-      <v-text-field
-        v-model="question"
-        label="ひとことクエスチョンを入力（例: 最近ハマっていることは？）"
-        variant="underlined"
-      ></v-text-field>
+      >CSV ファイルを選択</v-btn>
+      <v-sheet
+        class="bg-grey-lighten-3 border rounded-lg pa-4 ma-4"
+      >
+        <p class="mb-4 d-inline-flex align-center">
+          <v-icon icon="mdi-information" color="grey" class="mr-2"></v-icon>
+          CSV には以下の列名が必要です。
+        </p>
+        <ul class="ps-4">
+          <li><strong>email</strong>: メールアドレス（重複禁止）</li>
+          <li><strong>on_badge</strong>: 名札に載せる名前</li>
+          <li><strong>on_plate</strong>: お皿に載せる名前</li>
+        </ul>
+      </v-sheet>
     </div>
     <div>
       <h2>Step2.</h2>
       <p>参加者を選択してください。</p>
-      <v-table
-        class="ma-4"
-      >
+      <v-table v-if="badgeNames.length > 0" class="ma-4">
         <thead>
           <tr>
             <th>参加</th>
@@ -66,40 +86,44 @@ const createBadge = async () => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="badgeName in badgeNames">
+          <tr v-for="badgeName in badgeNames" :key="badgeName.email">
             <td>
-              <v-checkbox-btn></v-checkbox-btn>
+              <v-checkbox-btn
+                v-model="participantEmails"
+                :value="badgeName.email"
+              ></v-checkbox-btn>
             </td>
-            <td>おおわだ</td>
-            <td>大和田</td>
+            <td>{{ badgeName.onBadge }}</td>
+            <td>{{ badgeName.onPlate }}</td>
           </tr>
         </tbody>
       </v-table>
+      <p v-else class="text-error text-center ma-4">CSV が正しくアップロードされていません。</p>
     </div>
     <div>
       <h2>Step3.</h2>
-      <p>保存先のフォルダを選択してください。</p>
-      <div class="path-display-container">
-        <v-btn
-          color="secondary"
-          rounded="xl"
-          prepend-icon="mdi-folder"
-          @click="selectSaveDirectory()"
-        >フォルダを選択</v-btn>
-        <span>保存先: {{ saveDirectory || '未選択' }}</span>
-      </div>
+      <p>ひとことクエスチョンを入力してください。</p>
+      <p class="text-caption">「？」を含めて 13 文字まで 現在: {{ question.length }}/13 文字</p>
+      <v-text-field
+        v-model="question"
+        placeholder="最近ハマっていることは？"
+        variant="underlined"
+        class="px-4"
+      ></v-text-field>
     </div>
     <div class="btn-container">
       <h2>Step4.</h2>
-      <p>下記のボタンを押して名札を作成してください。作成後、選択したフォルダに保存されます。</p>
+      <p>下記のボタンを押して名札を作成してください（約 20 秒かかります）。<br>作成後、ダウンロードフォルダに保存されます。</p>
       <v-btn
-        color="primary"
+        color="success"
         rounded="xl"
-        append-icon="mdi-download"
+        prepend-icon="mdi-download"
+        :disabled="participantEmails.length === 0"
+        :loading="isCreatingBadge"
         @click="createBadge()"
       >名札を作成</v-btn>
     </div>
-    <p>お疲れ様でした。これで名札が作成されました。</p>
+    <p class="mb-8">お疲れ様でした。これで名札が作成されました。</p>
   </div>
 </template>
 
@@ -125,14 +149,5 @@ const createBadge = async () => {
   width: 50%;
   margin: 1.5rem;
   align-self: center;
-}
-.path-display-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 32px;
-  padding: 1em 0;
-  color: gray;
-  border-radius: 8px;
 }
 </style>
