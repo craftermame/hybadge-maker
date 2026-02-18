@@ -3,16 +3,18 @@ from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+
+from src.utils import get_resource_path
 from src.domain.entities import PersonName
 from .models import Frame, Pointer
 
 BOLD_FONT = "NotoSansJP-Medium"
 LIGHT_FONT = "NotoSansJP-Light"
-BOLD_FONT_SIZE = 40
-LIGHT_FONT_SIZE = 20
+BOLD_FONT_PATH = get_resource_path(f"assets/fonts/{BOLD_FONT}.ttf")
+LIGHT_FONT_PATH = get_resource_path(f"assets/fonts/{LIGHT_FONT}.ttf")
 
-pdfmetrics.registerFont(TTFont(BOLD_FONT, f"assets/fonts/{BOLD_FONT}.ttf"))
-pdfmetrics.registerFont(TTFont(LIGHT_FONT, f"assets/fonts/{LIGHT_FONT}.ttf"))
+pdfmetrics.registerFont(TTFont(BOLD_FONT, BOLD_FONT_PATH))
+pdfmetrics.registerFont(TTFont(LIGHT_FONT, LIGHT_FONT_PATH))
 
 class HyBadgeFactory:
     def __init__(
