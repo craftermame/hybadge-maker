@@ -3,6 +3,7 @@ const path = require('node:path')
 const { execFile } = require('child_process')
 const { promisify } = require('node:util')
 const execFilePromise = promisify(execFile)
+const fs = require('node:fs/promises')
 
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -28,6 +29,10 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow()
     }
+  })
+
+  ipcMain.handle('get-download-path', () => {
+    return app.getPath('downloads')
   })
 })
 
@@ -69,10 +74,10 @@ ipcMain.on('show-folder', (event, path) => {
   shell.showItemInFolder(path)
 })
 
-ipcMain.handle('create-badge', async (event, question, personNamesSrc, outputDir) => {
+ipcMain.handle('create-badge', async (event, question, personNamesSrc, outputDir, participantEmails) => {
   try {
     const binaryPath = path.join(app.getAppPath(), 'bin', 'main')
-    const args = [ question, personNamesSrc, path.join(outputDir, 'badge.pdf') ]
+    const args = [ question, personNamesSrc, path.join(outputDir, 'badge.pdf'), ...participantEmails]
 
     const { stdout, stderr } = await execFilePromise(binaryPath, args)
 
@@ -85,3 +90,12 @@ ipcMain.handle('create-badge', async (event, question, personNamesSrc, outputDir
     return
   }
 })
+
+ipcMain.handle('read-csv-file', async (_event, filePath) => {
+  try {
+    return await fs.readFile(filePath, 'utf-8');
+  } catch (error) {
+    console.error('Could not read csv file:', error);
+    throw error;
+  }
+});
