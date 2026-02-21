@@ -34,7 +34,7 @@ const createBadge = async () => {
     const filePath = await window.mainAPI.createBadge(
       question.value,
       csvPath.value,
-    saveDir.value,
+      saveDir.value,
       [...participantEmails.value]
     );
     await window.mainAPI.showFolder(filePath);
