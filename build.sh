@@ -1,6 +1,17 @@
 #!/bin/bash
 
-source .venv/bin/activate
-python -m PyInstaller --onefile --paths src --add-data "assets/fonts:assets/fonts" src/app/main.py
+PATH_SEP=":"
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
+  PATH_SEP=";"
+fi
 
-cp dist/main ui/bin/
+python -m PyInstaller \
+  --paths src \
+  --add-data "assets/fonts${PATH_SEP}assets/fonts" \
+  --name "hybadge-maker" \
+  --onefile \
+  --noconfirm \
+  --clean \
+  src/app/main.py
+
+mv -f dist/hybadge-maker* ui/bin/  # windows では dist/hybadge-maker.exe になる
