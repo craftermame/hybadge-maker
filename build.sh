@@ -14,4 +14,5 @@ python -m PyInstaller \
   --clean \
   src/app/main.py
 
+mkdir -p ui/bin/
 mv -f dist/hybadge-maker* ui/bin/  # windows では dist/hybadge-maker.exe になる
