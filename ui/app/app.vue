@@ -2,14 +2,14 @@
 const { badgeNames, loadBadgeNamesFromCsv } = useBadgeNames();
 
 const csvPath = ref<string | undefined>(undefined);
-const savePath = ref<string | undefined>(undefined);
+const saveDir = ref<string | undefined>(undefined);
 const participantEmails = ref<string[]>([]);
 const question = ref('');
 const isCreatingBadge = ref(false);
 
 onMounted(async () => {
   try {
-    savePath.value = await window.mainAPI.getDownloadPath();
+    saveDir.value = await window.mainAPI.getDownloadPath();
   } catch (error) {
     console.error("Failed to load default download path:", error);
   }
@@ -34,7 +34,7 @@ const createBadge = async () => {
     const filePath = await window.mainAPI.createBadge(
       question.value,
       csvPath.value,
-      savePath.value,
+    saveDir.value,
       [...participantEmails.value]
     );
     await window.mainAPI.showFolder(filePath);
