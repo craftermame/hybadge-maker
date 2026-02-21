@@ -76,7 +76,7 @@ ipcMain.on('show-folder', (event, path) => {
 
 ipcMain.handle('create-badge', async (event, question, personNamesSrc, outputDir, participantEmails) => {
   try {
-    const binaryPath = path.join(app.getAppPath(), 'bin', 'main')
+    const binaryPath = path.join(app.getAppPath(), 'bin', 'hybadge-maker')
     const args = [ question, personNamesSrc, path.join(outputDir, 'badge.pdf'), ...participantEmails]
 
     const { stdout, stderr } = await execFilePromise(binaryPath, args)
